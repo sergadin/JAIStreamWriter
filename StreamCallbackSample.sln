@@ -1,0 +1,66 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2013
+VisualStudioVersion = 12.0.31101.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "StreamCallbackSample", "StreamCallbackSample\StreamCallbackSample.vcxproj", "{12CCFF0D-9364-443A-A3F5-7864A4E954E1}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "AviRecover", "AviRecover\AviRecover.vcxproj", "{4D3D95F5-426A-4E3B-9FFD-BADBB9D75E16}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "FramesDropper", "FramesDropper\FramesDropper.vcxproj", "{E7A813B2-BAA2-4AD9-9A96-B27ED8EB54AC}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{D6DAF4A6-CB4D-4CBF-B0C4-C7B540038584}"
+	ProjectSection(SolutionItems) = preProject
+		Performance1.psess = Performance1.psess
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Mixed Platforms = Debug|Mixed Platforms
+		Debug|Win32 = Debug|Win32
+		Debug|x64 = Debug|x64
+		Release|Mixed Platforms = Release|Mixed Platforms
+		Release|Win32 = Release|Win32
+		Release|x64 = Release|x64
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{12CCFF0D-9364-443A-A3F5-7864A4E954E1}.Debug|Mixed Platforms.ActiveCfg = Debug|x64
+		{12CCFF0D-9364-443A-A3F5-7864A4E954E1}.Debug|Mixed Platforms.Build.0 = Debug|x64
+		{12CCFF0D-9364-443A-A3F5-7864A4E954E1}.Debug|Win32.ActiveCfg = Debug|Win32
+		{12CCFF0D-9364-443A-A3F5-7864A4E954E1}.Debug|Win32.Build.0 = Debug|Win32
+		{12CCFF0D-9364-443A-A3F5-7864A4E954E1}.Debug|x64.ActiveCfg = Debug|x64
+		{12CCFF0D-9364-443A-A3F5-7864A4E954E1}.Debug|x64.Build.0 = Debug|x64
+		{12CCFF0D-9364-443A-A3F5-7864A4E954E1}.Release|Mixed Platforms.ActiveCfg = Release|Win32
+		{12CCFF0D-9364-443A-A3F5-7864A4E954E1}.Release|Mixed Platforms.Build.0 = Release|Win32
+		{12CCFF0D-9364-443A-A3F5-7864A4E954E1}.Release|Win32.ActiveCfg = Release|Win32
+		{12CCFF0D-9364-443A-A3F5-7864A4E954E1}.Release|Win32.Build.0 = Release|Win32
+		{12CCFF0D-9364-443A-A3F5-7864A4E954E1}.Release|x64.ActiveCfg = Release|x64
+		{12CCFF0D-9364-443A-A3F5-7864A4E954E1}.Release|x64.Build.0 = Release|x64
+		{4D3D95F5-426A-4E3B-9FFD-BADBB9D75E16}.Debug|Mixed Platforms.ActiveCfg = Debug|Win32
+		{4D3D95F5-426A-4E3B-9FFD-BADBB9D75E16}.Debug|Mixed Platforms.Build.0 = Debug|Win32
+		{4D3D95F5-426A-4E3B-9FFD-BADBB9D75E16}.Debug|Win32.ActiveCfg = Debug|Win32
+		{4D3D95F5-426A-4E3B-9FFD-BADBB9D75E16}.Debug|Win32.Build.0 = Debug|Win32
+		{4D3D95F5-426A-4E3B-9FFD-BADBB9D75E16}.Debug|x64.ActiveCfg = Debug|Win32
+		{4D3D95F5-426A-4E3B-9FFD-BADBB9D75E16}.Release|Mixed Platforms.ActiveCfg = Release|Win32
+		{4D3D95F5-426A-4E3B-9FFD-BADBB9D75E16}.Release|Mixed Platforms.Build.0 = Release|Win32
+		{4D3D95F5-426A-4E3B-9FFD-BADBB9D75E16}.Release|Win32.ActiveCfg = Release|Win32
+		{4D3D95F5-426A-4E3B-9FFD-BADBB9D75E16}.Release|Win32.Build.0 = Release|Win32
+		{4D3D95F5-426A-4E3B-9FFD-BADBB9D75E16}.Release|x64.ActiveCfg = Release|Win32
+		{E7A813B2-BAA2-4AD9-9A96-B27ED8EB54AC}.Debug|Mixed Platforms.ActiveCfg = Debug|Win32
+		{E7A813B2-BAA2-4AD9-9A96-B27ED8EB54AC}.Debug|Mixed Platforms.Build.0 = Debug|Win32
+		{E7A813B2-BAA2-4AD9-9A96-B27ED8EB54AC}.Debug|Win32.ActiveCfg = Debug|Win32
+		{E7A813B2-BAA2-4AD9-9A96-B27ED8EB54AC}.Debug|Win32.Build.0 = Debug|Win32
+		{E7A813B2-BAA2-4AD9-9A96-B27ED8EB54AC}.Debug|x64.ActiveCfg = Debug|Win32
+		{E7A813B2-BAA2-4AD9-9A96-B27ED8EB54AC}.Release|Mixed Platforms.ActiveCfg = Release|Win32
+		{E7A813B2-BAA2-4AD9-9A96-B27ED8EB54AC}.Release|Mixed Platforms.Build.0 = Release|Win32
+		{E7A813B2-BAA2-4AD9-9A96-B27ED8EB54AC}.Release|Win32.ActiveCfg = Release|Win32
+		{E7A813B2-BAA2-4AD9-9A96-B27ED8EB54AC}.Release|Win32.Build.0 = Release|Win32
+		{E7A813B2-BAA2-4AD9-9A96-B27ED8EB54AC}.Release|x64.ActiveCfg = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(Performance) = preSolution
+		HasPerformanceSessions = true
+	EndGlobalSection
+EndGlobal
