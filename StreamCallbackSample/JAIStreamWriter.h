@@ -12,7 +12,7 @@ typedef enum { MSG_DEBUG = 0, MSG_TRACE, MSG_INFO, MSG_WARNING, MSG_ERROR } Mess
 // JAIStreamWrite performs image convertion in parallel and writes the resulting JPEG images in AVI file
 class JAIStreamWriter {
 public:
-    JAIStreamWriter(LPCWSTR sFileName);
+    JAIStreamWriter(LPCWSTR sFileName, LPCWSTR sFileNameForExtraFrames);
     ~JAIStreamWriter();
     
     BOOL setupStreamParameters(long width, long height, int quality); // Stream dimentions and JPEG quality [0-100]
@@ -36,15 +36,15 @@ private:
     unsigned int m_quality;
 
     AVIWriter    m_aviWriter;
+    AVIWriter    m_aviWriter_extra; // AVI stream for outdated frames that were not included into the main stream
     std::wofstream   m_log_file;   // File for output logging information
 
     // Variables used by frames replacement methods. If all encoders are busy last encoded frame is duplicated appropriate number of times
-    unsigned char *m_pLastJPEGFrame;     // Buffer containing copy of the last JPEG image written to output file
-    unsigned int m_iLastJPEGFrameSize;   // Size of the last written JPEG image
     unsigned int m_iLastJPEGFrameNumber; // Frame number of last saved JPEG image
     unsigned int m_iLastEncodedFrame;  // Index of last frame submitted for encoding
     unsigned int m_iFrameToDuplicate;   // Which frame have to be duplicated due to impossibility of proper encoding
     unsigned int m_iDuplicationCount;   // How many times this frame should be repeated
+    unsigned int m_iSubstitutionsCount; // Number of frames written as a replacement of missing ones
 
     struct EncoderInfo {
         JpegEncoder *enc;
@@ -73,11 +73,12 @@ private:
     EncoderInfo   *m_encoders;
     HANDLE        *m_hJpegReadyEvents; // Vector of events. True, if corresponding thread wrote its data to the stream and ready for new job 
     CRITICAL_SECTION m_csOutput; // Serialize output of JPEG images into avi stream
+    CRITICAL_SECTION m_csLogging; // Serialize output of log file
+
 
     int JAIStreamWriter::getFreeThread();
     void submitEncodingJob(int encoderIndex, JSAMPLE *src, int width, int height);
     void writeJpegImage(unsigned long frame_number, unsigned char *mem, unsigned long image_size);
-    void duplicateLastFrame();  // Used for protection against performace degradation
     static DWORD process(EncoderInfo *encinfo); // Thread entry point
 
     double secondsFromStart() const;

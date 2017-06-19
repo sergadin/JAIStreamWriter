@@ -1,6 +1,7 @@
 #include "stdafx.h"
 
 #include <fstream>
+#include <iomanip>
 #include <stdio.h>
 #include <stdarg.h>
 #include <string>
@@ -15,8 +16,9 @@ const int max_image_width = 3000;
 const int max_image_height = 2500;
 const int color_planes = 3;
 
-JAIStreamWriter::JAIStreamWriter(LPCWSTR sFileName)
+JAIStreamWriter::JAIStreamWriter(LPCWSTR sFileName, LPCWSTR sFileNameForExtra)
     : m_aviWriter(sFileName),
+    m_aviWriter_extra(sFileNameForExtra),
     m_convertedImages(m_nEncoderThreads)
 {
     m_FramesCount = m_nFramesWritten = 0;
@@ -24,19 +26,19 @@ JAIStreamWriter::JAIStreamWriter(LPCWSTR sFileName)
 
     m_iLastEncodedFrame = 0;
     m_iLastJPEGFrameNumber = 0;
-    m_pLastJPEGFrame = new unsigned char[m_outputBufferSize];
-    m_iLastJPEGFrameSize = 0;
     m_iFrameToDuplicate = 0;
     m_iDuplicationCount = 0;
+    m_iSubstitutionsCount = 0;
     m_StreamFilename = sFileName; 
 
     GetSystemTime(&m_t0);
 
+    InitializeCriticalSection(&m_csOutput);
+    InitializeCriticalSection(&m_csLogging);
+
     m_log_file.open("STREAM.LOG", std::ios::binary | std::ios::out);
     log_message(MSG_TRACE, _T("Starting JAIStreamWriter."));
 
-
-    InitializeCriticalSection(&m_csOutput);
     m_hJpegReadyEvents = new HANDLE[m_nEncoderThreads];
     m_encoders = new EncoderInfo[m_nEncoderThreads];
     for (int k = 0; k < m_nEncoderThreads; k++) {
@@ -74,7 +76,6 @@ JAIStreamWriter::~JAIStreamWriter() {
             log_message(MSG_ERROR, _T("Unable to free memory for converted image for encoding thread %d."), k);
         }
     }
-    delete[] m_pLastJPEGFrame;
     m_log_file.close();
 }
 
@@ -131,8 +132,7 @@ BOOL JAIStreamWriter::addFrame(J_tIMAGE_INFO* ptRawImageInfo)
     m_iLastEncodedFrame = m_FramesCount;
     return TRUE;
 failure:
-    log_message(MSG_ERROR, _T("*** FRAME %d will be substituted by %d ***"), m_FramesCount, m_iLastEncodedFrame);
-    duplicateLastFrame();
+    log_message(MSG_ERROR, _T("*** FRAME %d will be skipped ***"), m_FramesCount);
     ++m_nFailures;
     return FALSE;
 }
@@ -182,7 +182,8 @@ BOOL JAIStreamWriter::setupStreamParameters(long width, long height, int quality
 
 
 BOOL JAIStreamWriter::stop() {
-    log_message(MSG_TRACE, _T("Stop recording. %d frames processed."), m_FramesCount);
+    log_message(MSG_TRACE, _T("Stop recording. %d frames processed; %d frames replaced; %d outdated frames stord in extra AVI file."),
+        m_FramesCount, m_iSubstitutionsCount, m_nInversions);
     return TRUE;
 }
 
@@ -222,39 +223,24 @@ int JAIStreamWriter::getFreeThread() {
 
 void JAIStreamWriter::writeJpegImage(unsigned long frame_number, unsigned char *mem, unsigned long image_size) {
     EnterCriticalSection(&m_csOutput);
-    log_message(MSG_TRACE, _T("Writing frame # %d."), frame_number);
-    m_aviWriter.addFrame(reinterpret_cast<const unsigned char *>(mem), image_size);
-    if (frame_number == m_iFrameToDuplicate && m_iDuplicationCount > 0) {
-        log_message(MSG_TRACE, _T("Writing frame # %d (replacement) %d times."), m_iFrameToDuplicate, m_iDuplicationCount);
-        for (unsigned int count = 0; count < m_iDuplicationCount; count++) {
-            m_aviWriter.addFrame(reinterpret_cast<const unsigned char *>(mem), image_size);
-        }
-        m_iDuplicationCount = 0;
-    }
-    // Save a copy of this image, if it is not outdated due to possible racing condition
     if (frame_number > m_iLastJPEGFrameNumber) {
-        memcpy(m_pLastJPEGFrame, mem, image_size);
-        m_iLastJPEGFrameSize = image_size;
+        int repetitions = frame_number - m_iLastJPEGFrameNumber;
+        m_iSubstitutionsCount += (repetitions - 1);
+        while (repetitions-- > 0) {
+            if (repetitions == 0)
+                log_message(MSG_TRACE, _T("Writing frame # %d."), frame_number);
+            else
+                log_message(MSG_TRACE, _T("Writing frame # %d as a replacement of missing frame."), frame_number);
+            m_aviWriter.addFrame(reinterpret_cast<const unsigned char *>(mem), image_size);
+            m_nFramesWritten++;
+        }
         m_iLastJPEGFrameNumber = frame_number;
     }
     else {
         //  Later frame was encoded faster. This situation should be avoided by some means
+        log_message(MSG_TRACE, _T("Outdated frame # %d SKIPPED; added as frame # %d into extra avi."), frame_number, m_nInversions);
+        m_aviWriter_extra.addFrame(reinterpret_cast<const unsigned char *>(mem), image_size);
         m_nInversions++;
-    }
-    m_nFramesWritten++;
-    LeaveCriticalSection(&m_csOutput);
-}
-
-void JAIStreamWriter::duplicateLastFrame() {
-    EnterCriticalSection(&m_csOutput);
-    if (m_iLastEncodedFrame > m_iLastJPEGFrameNumber) {
-        // Frame we are trying to duplicate is not encoded yet; create a request for duplication
-        m_iFrameToDuplicate = m_iLastEncodedFrame;
-        m_iDuplicationCount++;
-    }
-    else {
-        log_message(MSG_TRACE, _T("Writing frame # %d (replacement)."), m_iLastJPEGFrameNumber);
-        m_aviWriter.addFrame(reinterpret_cast<const unsigned char *>(m_pLastJPEGFrame), m_iLastJPEGFrameSize);
     }
     LeaveCriticalSection(&m_csOutput);
 }
@@ -269,9 +255,12 @@ void JAIStreamWriter::log_message(MessageLevel level, LPCWSTR message, ...)
     va_end(format_args);
 
     double timestamp = secondsFromStart();
-
-    m_log_file << timestamp << _T(": ");
+    char timestamp_str[128];
+    sprintf(timestamp_str, "%.4f: ", timestamp);
+    EnterCriticalSection(&m_csLogging);
+    m_log_file << timestamp_str;
     m_log_file << msg.GetString();
     m_log_file << std::endl;
     //MessageBox(msg, _T("Error message"), MB_ICONERROR | MB_OK);
+    LeaveCriticalSection(&m_csLogging);
 }

@@ -66,7 +66,7 @@ void SetFramegrabberPixelFormat(CAM_HANDLE hCam, int8_t* szName, int64_t jaiPixe
 
     int8_t szJaiPixelFormatName[512];
     uint32_t iSize = 512;
-    retval = J_Image_Get_PixelFormatName(hCam, jaiPixelFormat, (char *)&szJaiPixelFormatName[0], iSize);
+    retval = J_Image_Get_PixelFormatName(hCam, jaiPixelFormat, szJaiPixelFormatName, iSize);
     if(J_ST_SUCCESS != retval)
         return;
 
@@ -108,7 +108,7 @@ void SetFramegrabberPixelFormat(CAM_HANDLE hCam, int8_t* szName, int64_t jaiPixe
 //--------------------------------------------------------------------------------------------------
 CStreamCallbackSampleDlg::CStreamCallbackSampleDlg(CWnd* pParent /*=NULL*/)
 : CDialog(CStreamCallbackSampleDlg::IDD, pParent),
-m_StreamWriter(_T("JAIstream"))
+m_StreamWriter(_T("JAIstream"), _T("JAIstream_extra"))
 {
     m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
 
@@ -499,7 +499,7 @@ void CStreamCallbackSampleDlg::StreamCBFunc(J_tIMAGE_INFO * pAqImageInfo)
             unsigned int dropped = m_StreamWriter.framesDropped(),
                 written = m_StreamWriter.framesWritten();
             CString msg;
-            msg.Format(_T("FPS=%lf, %u frames written to AVI file (%d frames dropped)\n%d frames written in wrong order\nRecording time: %f seconds"), 
+            msg.Format(_T("FPS=%lf, %u frames written to AVI file (%d frames dropped)\n%d frames arrived in wrong order\nRecording time: %f seconds"), 
                 fps, written, dropped,
                 m_StreamWriter.frmaesInverted(),
                 elapsed_time_sec);
